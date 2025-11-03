@@ -7,8 +7,7 @@ import numpy as np
 from unet_model import UNet
 from ultralytics import YOLO
 
-# ------------------ UNET MODEL PREDICTION ------------------ #
-# Load UNet model
+
 model = UNet()
 model.load_state_dict(torch.load(
     "/Users/ishanshsharma/Desktop/Pothole Detection/unet_best_model-2.pth",
@@ -39,7 +38,6 @@ with torch.no_grad():
 unet_mask = (predicted_mask > 0.1).astype(np.uint8) * 255
 unet_mask_resized = cv2.resize(unet_mask, (img_cv.shape[1], img_cv.shape[0]))
 
-# ------------------ YOLO MODEL PREDICTION ------------------ #
 # Load YOLO model
 yolo_model = YOLO("/Users/ishanshsharma/Desktop/Pothole Detection/Final_Pothole_YolO_V8.pt")
 class_names = yolo_model.names
@@ -61,10 +59,8 @@ for r in results:
                     cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
 
 
-# Initialize YOLO mask
 yolo_mask = np.zeros((h, w), dtype=np.uint8)
 
-# Extract YOLO segmentation mask
 for r in results:
     boxes = r.boxes
     masks = r.masks
@@ -75,7 +71,6 @@ if masks is not None:
         seg_resized = cv2.resize(seg, (w, h))
         yolo_mask[seg_resized > 0.5] = 255
 
-# Extract YOLO segmentation mask
 for r in results:
     boxes = r.boxes
     masks = r.masks
@@ -86,7 +81,6 @@ if masks is not None:
         seg_resized = cv2.resize(seg, (w, h))
         yolo_mask[seg_resized > 0.5] = 255
 
-    # Draw boxes and labels onto the YOLO mask
     for box in boxes:
         x1, y1, x2, y2 = box.xyxy[0].cpu().numpy().astype(int)
         label = f"{class_names[int(box.cls[0])]} {float(box.conf[0]):.2f}"
@@ -95,13 +89,9 @@ if masks is not None:
                     0.6, 255, 2)
 
 
-# Resize YOLO mask to match UNet mask size
 yolo_mask_resized = cv2.resize(yolo_mask, (unet_mask_resized.shape[1], unet_mask_resized.shape[0]))
-
-# ------------------ COMBINE MASKS ------------------ #
 combined_mask = np.maximum(unet_mask_resized, yolo_mask_resized)
 
-# ------------------ VISUALIZE ALL ------------------ #
 plt.figure(figsize=(20, 12))
 
 plt.subplot(1, 5, 1)
@@ -127,7 +117,7 @@ plt.imshow(cv2.cvtColor(img_yolo, cv2.COLOR_BGR2RGB))
 plt.tight_layout()
 plt.show()
 
-# ----- UNET SEGMENTATION -----
+
 
 
 # Load UNet model
@@ -159,7 +149,7 @@ plt.show()
 #unet_mask = (predicted_mask > 0.5).astype(np.uint8) * 255
 #unet_mask_resized = cv2.resize(unet_mask, (img_cv.shape[1], img_cv.shape[0]))
 
-# ----- YOLO MASK EXTRACTION -----
+
 # Load YOLO model
 #yolo_model = YOLO("/Users/ishanshsharma/Desktop/Pothole Detection/Final_Pothole_YolO_V8.pt")
 #class_names = yolo_model.names
@@ -186,6 +176,5 @@ plt.show()
 # Combine masks
 #combined_mask = np.maximum(unet_mask_resized, yolo_mask_resized)
 
-# ----- VISUALIZE ALL -----
 
 
